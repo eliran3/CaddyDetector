@@ -33,6 +33,7 @@ func main() {
 		tokenPriv      windows.Tokenprivileges
 	)
 
+	// List the running processes
 	processList, err := ps.Processes()
 	if err != nil {
 		fmt.Println("This program only works on windows systems")
