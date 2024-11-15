@@ -39,17 +39,20 @@ func main() {
 		return
 	}
 
+	// Get the current process's token
 	errToken := windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_ADJUST_PRIVILEGES|windows.TOKEN_QUERY, &token)
 	defer token.Close()
 	if errToken != nil {
 		return
 	}
 
+	// Get the luid of the SE_DEBUG_PRIVILEGE privilege level
 	errLookup := winsys.LookupPrivilegeValue("", winsys.SE_DEBUG_NAME, &luid)
 	if errLookup != nil {
 		return
 	}
 
+	// Enable the SE_DEBUG_PRIVILEGE
 	tokenPriv.PrivilegeCount = 1
 	tokenPriv.Privileges[0].Luid.HighPart = int32(luid >> 32)
 	tokenPriv.Privileges[0].Luid.LowPart = uint32(luid & 0xffffffff)
@@ -66,12 +69,14 @@ func main() {
 		for i := range processList {
 			process = processList[i]
 
+			// Open process to read memory from
 			handle, errOpenProcess := kernel32.OpenProcess(kernel32.PROCESS_VM_READ|kernel32.PROCESS_QUERY_INFORMATION, win32.BOOL(0), win32.DWORD(process.Pid()))
 			defer kernel32.CloseHandle(handle)
 			if errOpenProcess != nil {
 				continue
 			}
 
+			// Get the process base address
 			moduleHandles, errModules := kernel32.EnumProcessModules(handle)
 			if errModules != nil {
 				continue
@@ -84,8 +89,10 @@ func main() {
 
 			baseAddress := info.EntryPoint
 
+			// Read a memorry region of the process
 			_ = windows.ReadProcessMemory(windows.Handle(handle), uintptr(baseAddress), &allocatedBytes[0], uintptr(MEMORY_MAGIC_NUMBER), &numReadBytes)
 
+			// examine the memory to determine if it's potentially a Caddy Malware
 			if (uint32)(numReadBytes) == MEMORY_MAGIC_NUMBER {
 				nonZeroByte := true
 				for b := range allocatedBytes {
