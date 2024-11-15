@@ -33,13 +33,6 @@ func main() {
 		tokenPriv      windows.Tokenprivileges
 	)
 
-	// List the running processes
-	processList, err := ps.Processes()
-	if err != nil {
-		fmt.Println("This program only works on windows systems")
-		return
-	}
-
 	// Get the current process's token
 	errToken := windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_ADJUST_PRIVILEGES|windows.TOKEN_QUERY, &token)
 	defer token.Close()
@@ -67,6 +60,13 @@ func main() {
 	fmt.Println("Scanning processes to find Caddy...")
 
 	for {
+		// List the running processes
+		processList, err := ps.Processes()
+		if err != nil {
+			fmt.Println("This program only works on windows systems")
+			return
+		}
+
 		for i := range processList {
 			process = processList[i]
 
