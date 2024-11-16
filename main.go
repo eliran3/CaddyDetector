@@ -94,7 +94,7 @@ func main() {
 
 				// Examine the memory to determine if it's potentially a Caddy Malware
 				if (uint32)(numReadMem) == MEMORY_MAGIC_NUMBER {
-					if !IsLMEM_ZEROINIT(memBuffer) {
+					if IsLMEM_ZEROINIT(memBuffer) {
 						si := FindSusProcess(process.Pid())
 						if si == -1 {
 							susProcessList = append(susProcessList, SusProcess{process, 1})
