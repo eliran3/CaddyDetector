@@ -1,5 +1,5 @@
 # CaddyDetector
-Monitoring tool hoping to detect Caddy Wiper malware
+Monitoring tool to detect Caddy Wiper malware
 
 Running
 ```
