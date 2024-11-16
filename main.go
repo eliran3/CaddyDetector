@@ -32,8 +32,8 @@ var (
 )
 
 const (
-	MEMORY_MAGIC_NUMBER    uint32 = 0xA000000 // 10MB
-	SUS_SEVERITY_THRESHOLD int    = 10        // Highest severity score - treated as malware
+	MEMORY_MAGIC_NUMBER    uint32 = 0xA00000 // 10MB
+	SUS_SEVERITY_THRESHOLD int    = 10       // Highest severity score - treated as malware
 )
 
 func main() {
@@ -75,7 +75,7 @@ func main() {
 			}
 
 			if errHeapSpecification := GetProcessFirstHeap(syscall.Handle(hSnapShot), &heap); errHeapSpecification != nil {
-				fmt.Println(errHeapSpecification)
+				continue
 			}
 
 			hProcess, errOpenProcess := windows.OpenProcess(windows.PROCESS_VM_READ|windows.PROCESS_QUERY_INFORMATION|windows.PROCESS_TERMINATE, false, uint32(process.Pid()))
@@ -100,11 +100,11 @@ func main() {
 							susProcessList = append(susProcessList, SusProcess{process, 1})
 						} else if susProcessList[si].SusSeverity < SUS_SEVERITY_THRESHOLD {
 							susProcessList[si].SusSeverity++
+							fmt.Printf("Raising suspicion on (%v) - (%s) [SEVERITY: %v]\n", process.Pid(), process.Executable(), susProcessList[si].SusSeverity)
 						} else if susProcessList[si].SusSeverity == SUS_SEVERITY_THRESHOLD {
 							fmt.Printf("(%v) - (%s) Is suspected as malware!\n", process.Pid(), process.Executable())
 							errKill := KillProcess(hProcess)
 							if errKill != nil {
-								fmt.Println(errKill)
 								fmt.Printf("(%v) - (%s) Couldn't be terminated\n", process.Pid(), process.Executable())
 							}
 						}
